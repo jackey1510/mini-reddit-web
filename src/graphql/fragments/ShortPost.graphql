@@ -1,0 +1,9 @@
+fragment ShortPost on Post {
+  id
+  creator_id
+  created_at
+  updated_at
+  text_snippet
+  points
+  title
+}

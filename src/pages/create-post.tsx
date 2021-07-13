@@ -1,27 +1,30 @@
-import { Box, Flex, Link, Button } from "@chakra-ui/react";
+import { Box, Button } from "@chakra-ui/react";
 import { Formik, Form } from "formik";
 
 import React from "react";
 import InputField from "../components/InputField";
-import Wrapper from "../components/Wrapper";
-import NextLink from "next/link";
 import { useCreatePostMutation } from "../generated/graphql";
-import { useRouter } from "next/router";
 import { withUrqlClient } from "next-urql";
 import { creatUrqlClient } from "../utils/createUrqlClient";
+import { PostLayout } from "../components/PostLayout";
+import { useIsAuth } from "../utils/useIsAuth";
+import { useRouter } from "next/router";
 
 interface createPostProps {}
 
 const createPost: React.FC<createPostProps> = ({}) => {
+  useIsAuth();
   const router = useRouter();
   const [, createPost] = useCreatePostMutation();
   return (
-    <Wrapper variant="small">
+    <PostLayout variant="small">
       <Formik
         initialValues={{ title: "", text: "" }}
         onSubmit={async (values) => {
-          await createPost({ input: values });
-          router.push("/");
+          const { error } = await createPost({ input: values });
+          if (!error) {
+            router.push("/");
+          }
         }}
       >
         {({ isSubmitting }) => (
@@ -39,13 +42,6 @@ const createPost: React.FC<createPostProps> = ({}) => {
                 label="body"
               ></InputField>
             </Box>
-            <Flex>
-              <NextLink href="/forgot-password">
-                <Link mt={4} ml={"auto"}>
-                  Forget Password?
-                </Link>
-              </NextLink>
-            </Flex>
             <Button
               mt={4}
               type="submit"
@@ -57,7 +53,7 @@ const createPost: React.FC<createPostProps> = ({}) => {
           </Form>
         )}
       </Formik>
-    </Wrapper>
+    </PostLayout>
   );
 };
 
