@@ -25,6 +25,7 @@ export type FieldError = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  vote: Scalars['Boolean'];
   createPost: Post;
   updatePost: Post;
   deletePost: Scalars['Boolean'];
@@ -33,6 +34,12 @@ export type Mutation = {
   logout: Scalars['Boolean'];
   resetPassword: Scalars['Boolean'];
   changePassword: UserResponse;
+};
+
+
+export type MutationVoteArgs = {
+  postId: Scalars['Int'];
+  value: Scalars['Int'];
 };
 
 
@@ -82,13 +89,15 @@ export type PaginatedPosts = {
 export type Post = {
   __typename?: 'Post';
   id: Scalars['Int'];
-  created_at: Scalars['DateTime'];
-  updated_at: Scalars['DateTime'];
+  createdAt: Scalars['DateTime'];
+  updatedAt: Scalars['DateTime'];
   title: Scalars['String'];
   text: Scalars['String'];
   points: Scalars['Float'];
-  creator_id: Scalars['Float'];
-  text_snippet: Scalars['String'];
+  creator: User;
+  creatorId: Scalars['Int'];
+  upvotes: Array<Upvote>;
+  textSnippet: Scalars['String'];
 };
 
 export type PostInput = {
@@ -114,13 +123,24 @@ export type QueryPostArgs = {
   id: Scalars['Int'];
 };
 
+export type Upvote = {
+  __typename?: 'Upvote';
+  value: Scalars['Int'];
+  user: User;
+  userId: Scalars['Int'];
+  post: Post;
+  postId: Scalars['Int'];
+};
+
 export type User = {
   __typename?: 'User';
   id: Scalars['Int'];
-  created_at: Scalars['DateTime'];
-  updated_at: Scalars['DateTime'];
+  createdAt: Scalars['DateTime'];
+  updatedAt: Scalars['DateTime'];
   username: Scalars['String'];
   email: Scalars['String'];
+  posts: Array<Post>;
+  upvotes: Array<Upvote>;
 };
 
 export type UserInput = {
@@ -142,12 +162,12 @@ export type RegularErrorFragment = (
 
 export type RegularPostFragment = (
   { __typename?: 'Post' }
-  & Pick<Post, 'id' | 'creator_id' | 'created_at' | 'updated_at' | 'text' | 'points' | 'title'>
+  & Pick<Post, 'id' | 'creatorId' | 'createdAt' | 'updatedAt' | 'text' | 'points' | 'title'>
 );
 
 export type RegularUserFragment = (
   { __typename?: 'User' }
-  & Pick<User, 'id' | 'username' | 'email' | 'created_at' | 'updated_at'>
+  & Pick<User, 'id' | 'username' | 'email' | 'createdAt' | 'updatedAt'>
 );
 
 export type RegularUserResponseFragment = (
@@ -172,7 +192,11 @@ export type ShortPaginatedPostFragment = (
 
 export type ShortPostFragment = (
   { __typename?: 'Post' }
-  & Pick<Post, 'id' | 'creator_id' | 'created_at' | 'updated_at' | 'text_snippet' | 'points' | 'title'>
+  & Pick<Post, 'id' | 'creatorId' | 'createdAt' | 'updatedAt' | 'textSnippet' | 'points' | 'title'>
+  & { creator: (
+    { __typename?: 'User' }
+    & Pick<User, 'id' | 'username'>
+  ) }
 );
 
 export type ChangePasswordMutationVariables = Exact<{
@@ -275,9 +299,9 @@ export type PostsQuery = (
 export const RegularPostFragmentDoc = gql`
     fragment RegularPost on Post {
   id
-  creator_id
-  created_at
-  updated_at
+  creatorId
+  createdAt
+  updatedAt
   text
   points
   title
@@ -294,8 +318,8 @@ export const RegularUserFragmentDoc = gql`
   id
   username
   email
-  created_at
-  updated_at
+  createdAt
+  updatedAt
 }
     `;
 export const RegularUserResponseFragmentDoc = gql`
@@ -312,12 +336,16 @@ ${RegularUserFragmentDoc}`;
 export const ShortPostFragmentDoc = gql`
     fragment ShortPost on Post {
   id
-  creator_id
-  created_at
-  updated_at
-  text_snippet
+  creatorId
+  createdAt
+  updatedAt
+  textSnippet
   points
   title
+  creator {
+    id
+    username
+  }
 }
     `;
 export const ShortPaginatedPostFragmentDoc = gql`

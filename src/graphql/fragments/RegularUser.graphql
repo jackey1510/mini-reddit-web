@@ -2,6 +2,6 @@ fragment RegularUser on User {
   id
   username
   email
-  created_at
-  updated_at
+  createdAt
+  updatedAt
 }

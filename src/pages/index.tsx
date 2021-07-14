@@ -3,8 +3,9 @@ import { creatUrqlClient } from "../utils/createUrqlClient";
 import { usePostsQuery } from "../generated/graphql";
 import { PostLayout } from "../components/PostLayout";
 import NextLink from "../components/NextLink";
-import { Stack, Box, Heading, Text, Flex, Button } from "@chakra-ui/react";
+import { Stack, Box, Heading, Text, Flex, Button, Skeleton } from "@chakra-ui/react";
 import { useState } from "react";
+import { ArrowUpIcon, ArrowDownIcon } from "@chakra-ui/icons";
 
 const Index = () => {
   const [variable, setVariable] = useState({
@@ -25,23 +26,33 @@ const Index = () => {
       </Flex>
 
       {fetching && !data ? (
-        <div>loading...</div>
+        <Stack>
+          <Skeleton height="100px" />
+          <Skeleton height="100px" />
+          <Skeleton height="100px" />
+        </Stack>
       ) : data && data.posts ? (
         <Stack>
           {data.posts.posts.map((post) => {
-            console.log(post);
 
             return (
-              <Box key={post.id} p={5} shadow="md" borderWidth="1px">
-                <Heading fontSize="xl">{post.title}</Heading>
-                <Text mt={4}>{post.text_snippet}</Text>
-              </Box>
+              <Flex alignItems="stretch" key={post.id} p={5} shadow="md" borderWidth="1px">
+                <Box pr={2}><ArrowUpIcon size="24px" /><Text textAlign="center">{post.points}</Text><ArrowDownIcon size="24px" /></Box>
+                <Box flex="auto" justifyContent="center" alignItems="center">
+                  <Flex >
+                    <Heading fontSize="xl">{post.title}</Heading>
+                    <Text ml="auto" fontSize="medium">by {post.creator.username}</Text>
+                  </Flex>
+
+                  <Text mt={4}>{post.textSnippet}</Text>
+                </Box>
+              </Flex>
             );
           })}
         </Stack>
       ) : (
-        <Flex key={0}>No Posts</Flex>
-      )}
+            <Flex key={0}>No Posts</Flex>
+          )}
       {data && data.posts ? (
         <Flex>
           {" "}
@@ -49,10 +60,9 @@ const Index = () => {
             my={8}
             mx="auto"
             onClick={() => {
-              console.log(data.posts);
               setVariable({
                 cursor: data.posts.hasNext
-                  ? data.posts.posts[data.posts.posts.length - 1]?.created_at
+                  ? data.posts.posts[data.posts.posts.length - 1]?.createdAt
                   : null,
                 limit: variable.limit,
               });

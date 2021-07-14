@@ -56,20 +56,18 @@ const cursorPagination = (): Resolver<any, any, any> => {
   };
 };
 
-export const errorExchange: Exchange =
-  ({ forward }) =>
-  (ops$) => {
-    return pipe(
-      forward(ops$),
-      tap(({ error }) => {
-        if (error) {
-          if (error.message.includes("not authenticated")) {
-            Router.replace("/login");
-          }
+export const errorExchange: Exchange = ({ forward }) => (ops$) => {
+  return pipe(
+    forward(ops$),
+    tap(({ error }) => {
+      if (error) {
+        if (error.message.includes("not authenticated")) {
+          Router.replace("/login");
         }
-      })
-    );
-  };
+      }
+    })
+  );
+};
 
 export const creatUrqlClient = (ssrExchange: any) => ({
   url: "http://localhost:4000/graphql",
@@ -116,6 +114,13 @@ export const creatUrqlClient = (ssrExchange: any) => ({
               () => {
                 return { me: null };
               }
+            );
+          },
+          createPost: (_result, _args, cache, _info) => {
+            const allFields = cache.inspectFields("Query");
+            const fieldInfos = allFields.filter((f) => f.fieldName === "posts");
+            fieldInfos.forEach((fieldInfo) =>
+              cache.invalidate("Query", "posts", fieldInfo.arguments || {})
             );
           },
         },

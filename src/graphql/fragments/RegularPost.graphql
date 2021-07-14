@@ -1,8 +1,8 @@
 fragment RegularPost on Post {
   id
-  creator_id
-  created_at
-  updated_at
+  creatorId
+  createdAt
+  updatedAt
   text
   points
   title
