@@ -24,41 +24,61 @@ const cursorPagination = (): Resolver<any, any, any> => {
     }
 
     const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
-    const isInCache = cache.resolveFieldByKey(entityKey, fieldKey);
+    const isInCache = cache.resolve(
+      cache.resolveFieldByKey(entityKey, fieldKey) as string,
+      "posts"
+    );
     info.partial = !isInCache;
+    let hasNext = true;
 
     const results: string[] = [];
 
     fieldInfos.forEach((fieldInfo) => {
-      const data = cache.resolveFieldByKey(
+      const key = cache.resolveFieldByKey(
         entityKey,
         fieldInfo.fieldKey
       ) as string;
+      const data = cache.resolve(key, "posts") as string[];
+      const hasMore = !cache.resolve(key, "hasMore");
+      if (!hasMore) {
+        hasNext = hasMore as boolean;
+      }
       results.push(...data);
     });
 
-    return results;
+    const obj = {
+      __typename: "PaginatedPosts",
+      hasNext,
+      posts: results,
+    };
+
+    return obj;
   };
 };
 
-export const errorExchange: Exchange = ({ forward }) => (ops$) => {
-  return pipe(
-    forward(ops$),
-    tap(({ error }) => {
-      if (error) {
-        if (error.message.includes("not authenticated")) {
-          Router.replace("/login");
+export const errorExchange: Exchange =
+  ({ forward }) =>
+  (ops$) => {
+    return pipe(
+      forward(ops$),
+      tap(({ error }) => {
+        if (error) {
+          if (error.message.includes("not authenticated")) {
+            Router.replace("/login");
+          }
         }
-      }
-    })
-  );
-};
+      })
+    );
+  };
 
 export const creatUrqlClient = (ssrExchange: any) => ({
   url: "http://localhost:4000/graphql",
   exchanges: [
     dedupExchange,
     cacheExchange({
+      keys: {
+        PaginatedPosts: () => null,
+      },
       resolvers: {
         Query: {
           posts: cursorPagination(),
