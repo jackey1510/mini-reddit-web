@@ -11,10 +11,9 @@ import {
   Flex,
   Button,
   Skeleton,
-  IconButton,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
-import { ArrowUpIcon, ArrowDownIcon } from "@chakra-ui/icons";
+import { UpvoteSection } from "../components/UpvoteSection";
 
 const Index = () => {
   const [variable, setVariable] = useState({
@@ -51,6 +50,7 @@ const Index = () => {
                 shadow="md"
                 borderWidth="1px"
               >
+                <UpvoteSection post={post} />
                 <Box flex="auto" justifyContent="center" alignItems="center">
                   <Flex>
                     <Heading fontSize="xl">{post.title}</Heading>
@@ -66,8 +66,8 @@ const Index = () => {
           })}
         </Stack>
       ) : (
-        <Flex key={0}>No Posts</Flex>
-      )}
+            <Flex key={0}>No Posts</Flex>
+          )}
       {data && data.posts ? (
         <Flex>
           {" "}

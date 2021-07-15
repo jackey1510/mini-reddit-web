@@ -1,3 +1,4 @@
+import { VoteMutationVariables } from "./../generated/graphql";
 import { stringifyVariables } from "@urql/core";
 import Router from "next/router";
 import { dedupExchange, fetchExchange, Exchange } from "urql";
@@ -11,6 +12,7 @@ import {
 } from "../generated/graphql";
 import { betterUpdateQuery } from "./betterUpdateQuery";
 import { pipe, tap } from "wonka";
+import { gql } from "@urql/core";
 
 const cursorPagination = (): Resolver<any, any, any> => {
   return (_parent, fieldArgs, cache, info) => {
@@ -84,6 +86,32 @@ export const creatUrqlClient = (ssrExchange: any) => ({
       },
       updates: {
         Mutation: {
+          vote: (_result, args, cache, _info) => {
+            const { postId, value } = args as VoteMutationVariables;
+            const data: {
+              id: number;
+              points?: number;
+            } | null = cache.readFragment(
+              gql`
+                fragment _ on Post {
+                  id
+                  points
+                }
+              `,
+              { id: postId }
+            );
+            if (data) {
+              const newPoints = data.points! + value;
+              cache.writeFragment(
+                gql`
+                  fragment _ on Post {
+                    text
+                  }
+                `,
+                { id: postId, points: newPoints }
+              );
+            }
+          },
           login: (_result, _args, cache, _info) => {
             betterUpdateQuery<LoginMutation, MeQuery>(
               cache,
