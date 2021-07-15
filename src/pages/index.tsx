@@ -3,8 +3,17 @@ import { creatUrqlClient } from "../utils/createUrqlClient";
 import { usePostsQuery } from "../generated/graphql";
 import { PostLayout } from "../components/PostLayout";
 import NextLink from "../components/NextLink";
-import { Stack, Box, Heading, Text, Flex, Button, Skeleton } from "@chakra-ui/react";
-import { useState } from "react";
+import {
+  Stack,
+  Box,
+  Heading,
+  Text,
+  Flex,
+  Button,
+  Skeleton,
+  IconButton,
+} from "@chakra-ui/react";
+import React, { useState } from "react";
 import { ArrowUpIcon, ArrowDownIcon } from "@chakra-ui/icons";
 
 const Index = () => {
@@ -34,14 +43,20 @@ const Index = () => {
       ) : data && data.posts ? (
         <Stack>
           {data.posts.posts.map((post) => {
-
             return (
-              <Flex alignItems="stretch" key={post.id} p={5} shadow="md" borderWidth="1px">
-                <Box pr={2}><ArrowUpIcon size="24px" /><Text textAlign="center">{post.points}</Text><ArrowDownIcon size="24px" /></Box>
+              <Flex
+                alignItems="stretch"
+                key={post.id}
+                p={5}
+                shadow="md"
+                borderWidth="1px"
+              >
                 <Box flex="auto" justifyContent="center" alignItems="center">
-                  <Flex >
+                  <Flex>
                     <Heading fontSize="xl">{post.title}</Heading>
-                    <Text ml="auto" fontSize="medium">by {post.creator.username}</Text>
+                    <Text ml="auto" fontSize="medium">
+                      by {post.creator.username}
+                    </Text>
                   </Flex>
 
                   <Text mt={4}>{post.textSnippet}</Text>
@@ -51,8 +66,8 @@ const Index = () => {
           })}
         </Stack>
       ) : (
-            <Flex key={0}>No Posts</Flex>
-          )}
+        <Flex key={0}>No Posts</Flex>
+      )}
       {data && data.posts ? (
         <Flex>
           {" "}
