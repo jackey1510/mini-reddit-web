@@ -6,6 +6,7 @@ fragment ShortPost on Post {
   textSnippet
   points
   title
+  voteStatus
   creator {
     id
     username

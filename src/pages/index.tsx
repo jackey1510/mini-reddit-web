@@ -24,8 +24,6 @@ const Index = () => {
     variables: { limit: variable.limit, cursor: variable.cursor },
   });
 
-  console.log(variable);
-
   return (
     <PostLayout variant="large">
       <Flex>
@@ -42,6 +40,7 @@ const Index = () => {
       ) : data && data.posts ? (
         <Stack>
           {data.posts.posts.map((post) => {
+            // console.log(post);
             return (
               <Flex
                 alignItems="stretch"
@@ -66,8 +65,8 @@ const Index = () => {
           })}
         </Stack>
       ) : (
-            <Flex key={0}>No Posts</Flex>
-          )}
+        <Flex key={0}>No Posts</Flex>
+      )}
       {data && data.posts ? (
         <Flex>
           {" "}
