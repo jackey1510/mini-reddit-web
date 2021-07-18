@@ -1,19 +1,27 @@
-import { withUrqlClient } from "next-urql";
-import { creatUrqlClient } from "../utils/createUrqlClient";
-import { usePostsQuery } from "../generated/graphql";
-import { PostLayout } from "../components/PostLayout";
-import NextLink from "../components/NextLink";
 import {
-  Stack,
   Box,
-  Heading,
-  Text,
-  Flex,
-  Button,
-  Skeleton,
+
+
+
+  Button, Flex, Heading,
+
+
+
+  Skeleton, Stack,
+
+
+  Text
 } from "@chakra-ui/react";
+import { withUrqlClient } from "next-urql";
 import React, { useState } from "react";
+import EditDeletePostButtons from "../components/EditDeletePostButtons";
+import NextLink from "../components/NextLink";
+import { PostLayout } from "../components/PostLayout";
 import { UpvoteSection } from "../components/UpvoteSection";
+import { useMeQuery, usePostsQuery } from "../generated/graphql";
+import { creatUrqlClient } from "../utils/createUrqlClient";
+
+
 
 const Index = () => {
   const [variable, setVariable] = useState({
@@ -23,13 +31,11 @@ const Index = () => {
   const [{ data, fetching }] = usePostsQuery({
     variables: { limit: variable.limit, cursor: variable.cursor },
   });
+  const [{ data: me, fetching: fetchingme }] = useMeQuery();
 
   return (
     <PostLayout variant="large">
-      <Flex>
-        <Heading>Mini Reddit</Heading>
-        <NextLink ml="auto" href="/create-post" body="Create Post"></NextLink>
-      </Flex>
+
 
       {fetching && !data ? (
         <Stack>
@@ -42,7 +48,7 @@ const Index = () => {
           {data.posts.posts.map((post) => {
             // console.log(post);
             return (
-              <Flex
+              !post ? null : <Flex
                 alignItems="stretch"
                 key={post.id}
                 p={5}
@@ -50,23 +56,28 @@ const Index = () => {
                 borderWidth="1px"
               >
                 <UpvoteSection post={post} />
+
                 <Box flex="auto" justifyContent="center" alignItems="center">
                   <Flex>
-                    <Heading fontSize="xl">{post.title}</Heading>
+                    <NextLink href={`post/${post.id}`}><Heading fontSize="xl">{post.title}</Heading></NextLink>
                     <Text ml="auto" fontSize="medium">
                       by {post.creator.username}
                     </Text>
                   </Flex>
+                  <Flex flex={1} align='center'>
+                    <NextLink href={`post/${post.id}`}><Text mt={4}>{post.textSnippet}</Text></NextLink>
+                    {!fetchingme && !(me?.me?.id === post.creatorId) ? null : <Box ml="auto"> <EditDeletePostButtons id={post.id} /></Box>}
+                  </Flex>
 
-                  <Text mt={4}>{post.textSnippet}</Text>
+
                 </Box>
               </Flex>
             );
           })}
         </Stack>
       ) : (
-        <Flex key={0}>No Posts</Flex>
-      )}
+            <Flex key={0}>No Posts</Flex>
+          )}
       {data && data.posts ? (
         <Flex>
           {" "}

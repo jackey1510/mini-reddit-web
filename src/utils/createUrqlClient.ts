@@ -1,8 +1,11 @@
-import { VoteMutationVariables } from "./../generated/graphql";
+import {
+  VoteMutationVariables,
+  DeletePostMutationVariables,
+} from "./../generated/graphql";
 import { stringifyVariables } from "@urql/core";
 import Router from "next/router";
 import { dedupExchange, fetchExchange, Exchange } from "urql";
-import { cacheExchange, Resolver } from "@urql/exchange-graphcache";
+import { cacheExchange, Resolver, Cache } from "@urql/exchange-graphcache";
 import {
   LoginMutation,
   MeQuery,
@@ -63,27 +66,33 @@ const cursorPagination = (): Resolver<any, any, any> => {
   };
 };
 
-export const errorExchange: Exchange =
-  ({ forward }) =>
-  (ops$) => {
-    return pipe(
-      forward(ops$),
-      tap(({ error }) => {
-        if (error) {
-          if (error.message.includes("not authenticated")) {
-            Router.replace("/login");
-          }
+export const errorExchange: Exchange = ({ forward }) => (ops$) => {
+  return pipe(
+    forward(ops$),
+    tap(({ error }) => {
+      if (error) {
+        if (error.message.includes("not authenticated")) {
+          Router.replace("/login");
         }
-      })
-    );
-  };
+      }
+    })
+  );
+};
+
+const invalidAllPosts = (cache: Cache) => {
+  const allFields = cache.inspectFields("Query");
+  const fieldInfos = allFields.filter((f) => f.fieldName === "posts");
+  fieldInfos.forEach((fieldInfo) =>
+    cache.invalidate("Query", "posts", fieldInfo.arguments || {})
+  );
+};
 
 export const creatUrqlClient = (ssrExchange: any, ctx: any) => {
   let cookie = "";
-  if (isServer()) cookie = ctx.req.headers.cookie;
+  if (isServer()) cookie = ctx?.req?.headers?.cookie;
 
   return {
-    url: "http://localhost:4000/graphql",
+    url: process.env.API_URL,
     exchanges: [
       dedupExchange,
       cacheExchange({
@@ -97,6 +106,12 @@ export const creatUrqlClient = (ssrExchange: any, ctx: any) => {
         },
         updates: {
           Mutation: {
+            deletePost: (_result, args, cache, _info) => {
+              cache.invalidate({
+                __typename: "Post",
+                id: (args as DeletePostMutationVariables).id,
+              });
+            },
             vote: (_result, args, cache, _info) => {
               const { postId, value } = args as VoteMutationVariables;
               const data: {
@@ -156,15 +171,10 @@ export const creatUrqlClient = (ssrExchange: any, ctx: any) => {
                   return { me: null };
                 }
               );
+              invalidAllPosts(cache);
             },
             createPost: (_result, _args, cache, _info) => {
-              const allFields = cache.inspectFields("Query");
-              const fieldInfos = allFields.filter(
-                (f) => f.fieldName === "posts"
-              );
-              fieldInfos.forEach((fieldInfo) =>
-                cache.invalidate("Query", "posts", fieldInfo.arguments || {})
-              );
+              invalidAllPosts(cache);
             },
           },
         },
@@ -175,9 +185,11 @@ export const creatUrqlClient = (ssrExchange: any, ctx: any) => {
     ],
     fetchOptions: {
       credentials: "include" as const,
-      headers: {
-        cookie,
-      },
+      headers: cookie
+        ? {
+            cookie,
+          }
+        : undefined,
     },
   };
 };

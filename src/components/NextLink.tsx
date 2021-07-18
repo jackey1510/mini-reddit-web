@@ -4,13 +4,13 @@ import { Link, LinkProps } from "@chakra-ui/react";
 
 interface NextLinkProps extends LinkProps {
   href: string;
-  body: any;
+  // body: any;
 }
 
-export const NextLink: React.FC<NextLinkProps> = ({ href, body, ...props }) => {
+export const NextLink: React.FC<NextLinkProps> = ({ href, children, as, ...props }) => {
   return (
-    <NLink href={href}>
-      <Link {...props}>{body}</Link>
+    <NLink href={href} >
+      <Link {...props}>{children}</Link>
     </NLink>
   );
 };

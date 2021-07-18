@@ -1,6 +1,9 @@
 fragment RegularPost on Post {
   id
-  creatorId
+  creator {
+    id
+    username
+  }
   createdAt
   updatedAt
   text
